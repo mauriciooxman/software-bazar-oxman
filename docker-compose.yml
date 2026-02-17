@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Servicio de Base de Datos MySQL
+  bazar-db:
+    image: mysql:8.0
+    container_name: bazar-db-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Contraseña root
+      MYSQL_DATABASE: bazar_db   # Nombre de tu BD
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # Servicio de tu Aplicación Spring Boot
+  bazar-app:
+    build: .
+    container_name: bazar-app-container
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bazar-db
+    environment:
+      # Sobreescribimos la config para conectar al contenedor 'bazar-db' en vez de localhost
+      SPRING_DATASOURCE_URL: jdbc:mysql://bazar-db:3306/bazar_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      # JPA actualizará las tablas automáticamente
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+volumes:
+  mysql_data:
